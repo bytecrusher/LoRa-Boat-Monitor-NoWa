@@ -31,8 +31,6 @@
  * 
  *******************************************************************************/
 
-//#include <Arduino.h>
-
 // Includes
 #include <WiFi.h>               // WiFi lib with TCP server and client
 #include <WiFiClient.h>         // WiFi lib for clients
@@ -144,15 +142,21 @@ void enableWiFi(){
     Serial.println("START WIFI");
     WiFi.begin(actconf.cssid, actconf.cpassword);
  
-    while (WiFi.status() != WL_CONNECTED) {
+    int i = 0;
+    while ((WiFi.status() != WL_CONNECTED) && (i <= 20)) {
         delay(500);
         Serial.print(".");
+        i++;
     }
- 
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+    if (i <= 20) {
+      Serial.println("");
+      Serial.println("WiFi connected");
+      Serial.println("IP address: ");
+      Serial.println(WiFi.localIP());
+    } else {
+      Serial.println("");
+      Serial.println("WiFi not connected");
+    }
 }
 
 void state0(){
