@@ -1,10 +1,10 @@
  /*******************************************************************************
- * Copyright (c) 2021 Norbert Walter
+ * Copyright (c) 2023 Norbert Walter modified by Guntmar Hoeche
  * 
  * License: GNU GPL V3
  * https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * LoRa_boat_monitor_abp.ino
+ * LoRa_Boat_Monitor.cpp
  * 
  * Based on work of Thomas Telkamp and Matthijs Kooijman
  *
@@ -39,6 +39,9 @@
 #include <Update.h>             // Web Update server
 #include <MD5Builder.h>         // MD5 lib
 #include "driver/adc.h"
+
+#include "SPIFFS.h"
+
 
 #include <U8x8lib.h>            // OLED Lib
 #include <lmic.h>               // LoRa Lib
@@ -204,7 +207,8 @@ void state0(){
 }
 
 void state1(){
-  Serial.println("State 1");
+  //Serial.println("State 1");
+  DebugPrint(3, "State 1");
   if(machine.executeOnce){
     enableWiFi();
     u8x8.setPowerSave(0);
@@ -312,8 +316,6 @@ bool transitionS0S1(){
   }
 }
 
-//=======================================
-
 bool transitionS1S0(){
   //return true;
   if (alarm1 == true) {
@@ -406,7 +408,7 @@ void setup() {
   DebugPrint(3, actconf.devname);
   DebugPrint(3, " ");
   DebugPrint(3, actconf.fversion);
-  DebugPrintln(3, " (C) Norbert Walter");
+  DebugPrintln(3, " (C) Norbert Walter and modified by Guntmar Hoeche");
   DebugPrintln(3, "******************************************");
   DebugPrintln(3, "");
   DebugPrintln(3, "Modul Type: Heltec LoRa-32");
@@ -638,6 +640,25 @@ void setup() {
 
   S0->addTransition(&transitionS0S1,S1);    // Transition to itself (see transition logic for details)
   S1->addTransition(&transitionS1S0,S0);  // S1 transition to S0
+
+
+  if(!SPIFFS.begin(true)){
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
+  
+  File file = SPIFFS.open("/test.txt");
+  if(!file){
+    Serial.println("Failed to open file!");
+    return;
+  }
+  
+  Serial.println("Content of file:");
+  while(file.available()){
+    Serial.write(file.read());
+  }
+  file.close();
+
 }
 
 void loop() {

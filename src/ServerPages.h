@@ -96,6 +96,44 @@ httpServer.on("/devinfo", []() {
   httpServer.send(200, "text/html", content);
 });
 
+httpServer.on("/devinfo2", []() {
+  String content = Devinfo();
+  httpServer.sendHeader("Cache-Control", "no-cache");
+  //httpServer.send(200, "text/html", content);
+  File file = SPIFFS.open("/devinfo.html");
+  file.printf("%s\n%s", httpServer.arg(0).c_str(), httpServer.arg(1).c_str());
+  String dataType = "text/html";
+    if (httpServer.streamFile(file, dataType) != file.size())
+    {
+      Serial.println("Sent less data than expected!");
+    }
+    else
+    {
+      Serial.println("Page served!");
+    }
+  file.close();
+});
+
+//get heap status, analog input value and all GPIO statuses in one json call
+  //server.on("/devinfo_data", HTTP_GET, []() {
+  httpServer.on("/devinfo_data", []() {
+    String json = "{";
+    //json += "\"heap\":" + String(ESP.getFreeHeap());
+    json += "\"devname\":\"" + String(actconf.devname) + "\",";
+    json += "\"crights\":\"" + String(actconf.crights) + "\",";
+    json += "\"fversion\":\"" + String(actconf.fversion) + "\",";
+    json += "\"license\":\"" + String(actconf.license) + "\",";
+    json += "\"SdkVersion\":\"" + String(ESP.getSdkVersion()) + "\"";
+
+
+
+    //json += ", \"analog\":" + String(analogRead(A0));
+    //json += ", \"gpio\":" + String((uint32_t)(0));
+    json += "}";
+    httpServer.send(200, "text/json", json);
+    json = String();
+  });
+
 httpServer.on("/favicon.ico", []() {
   String content = Icon();
   httpServer.sendHeader("Cache-Control", "max-age=600");
